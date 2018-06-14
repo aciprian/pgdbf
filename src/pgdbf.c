@@ -30,7 +30,7 @@
 #include <sys/types.h>
 
 #include "pgdbf.h"
-#define STANDARDOPTS "cCdDeEhm:i:nNpPqQrRtTuU"
+#define STANDARDOPTS "cCdDeEhm:i:fnNpPqQrRtTuU"
 
 int main(int argc, char **argv) {
     /* Describing the DBF file */
@@ -108,6 +108,7 @@ int main(int argc, char **argv) {
     int     optusedroptable = 1;
     int     optuseifexists = 1;
     int     optignorefields = 0;
+    int     optprintfields = 0;
     int     optusequotedtablename = 0;
     int     optusetransaction = 1;
     int     optusetruncatetable = 0;
@@ -174,6 +175,8 @@ int main(int argc, char **argv) {
                 i++;
             }
             break;
+        case 'f':
+            optprintfields = 1;
         case 'm':
             memofilename = optarg;
             break;
@@ -251,7 +254,8 @@ int main(int argc, char **argv) {
                "  -e  use 'IF EXISTS' when dropping tables (PostgreSQL 8.2+) (default)\n"
                "  -E  do not use 'IF EXISTS' when dropping tables (PostgreSQL 8.1 and older)\n"
                "  -h  print this message and exit\n"
-               "  -i  ignore fields"
+               "  -i  ignore fields\n"
+               "  -f  print fieldnames in \\COPY command\n"
                "  -m  the name of the associated memo file (if necessary)\n"
                "  -n  use type 'NUMERIC' for NUMERIC fields (default)\n"
                "  -N  use type 'TEXT' for NUMERIC fields\n"
@@ -473,7 +477,7 @@ int main(int argc, char **argv) {
     /* Uniqify the XBase field names. It's possible to have multiple fields
      * with the same name, but PostgreSQL correctly considers that an error
      * condition. */
-    if(optusecreatetable) {
+    if(optusecreatetable || optprintfields) {
         fieldnames = calloc(fieldcount, MAXCOLUMNNAMESIZE);
         if(fieldnames == NULL) {
             exitwitherror("Unable to allocate the columnname uniqification buffer", 1);
@@ -649,10 +653,20 @@ int main(int argc, char **argv) {
     if(optusetruncatetable) {
         printf("TRUNCATE TABLE %s;\n", baretablename);
     }
-
     /* Get PostgreSQL ready to receive lots of input */
-    printf("\\COPY %s FROM STDIN\n", baretablename);
-
+    if (optprintfields) {
+        printf("\\COPY %s (", baretablename);
+        for(fieldnum = 0; fieldnum < fieldcount; fieldnum++) {
+            //TODO: remove ignored fields if exist
+            printf("%s", fieldnames[fieldnum]);
+            if(fieldnum < fieldcount-1) {
+                printf(", ");
+            }
+        }
+        printf(") FROM STDIN\n");
+    } else {
+        printf("\\COPY %s FROM STDIN\n", baretablename);
+    }
     dbfbatchsize = DBFBATCHTARGET / littleint16_t(dbfheader.recordlength);
     if(!dbfbatchsize) {
         dbfbatchsize = 1;
