@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
     /* Describing the PostgreSQL table */
     char *tablename;
     char *baretablename;
-    char *optcustomtable;
+    char *customtablename;
     char (*fieldnames)[MAXCOLUMNNAMESIZE];
     int isuniquename;
     char basename[MAXCOLUMNNAMESIZE];
@@ -178,8 +178,10 @@ int main(int argc, char **argv) {
             break;
         case 'f':
             optprintfields = 1;
+            break;
         case 'g':
-            optcustomtable = optarg;
+            customtablename = optarg;
+            break;
         case 'm':
             memofilename = optarg;
             break;
@@ -317,8 +319,8 @@ int main(int argc, char **argv) {
 
     /* Calculate the table's name based on the DBF filename */
     dbffilename = argv[optind];
-    if(optcustomtable){
-        tablename = malloc(strlen(optcustomtable) + 1);
+    if(customtablename){
+        tablename = malloc(strlen(customtablename) + 1);
     } else {
         tablename = malloc(strlen(dbffilename) + 1);
     }
@@ -330,8 +332,8 @@ int main(int argc, char **argv) {
      * is used for other things, like creating the names of indexes. Despite
      * its name, baretablename may be surrounded by quote marks if the "-q"
      * option for optusequotedtablename is given. */
-    if(optcustomtable){
-        baretablename = malloc(strlen(optcustomtable) + 1 + optusequotedtablename * 2);
+    if(customtablename){
+        baretablename = malloc(strlen(customtablename) + 1 + optusequotedtablename * 2);
     } else {
         baretablename = malloc(strlen(dbffilename) + 1 + optusequotedtablename * 2);
     }
