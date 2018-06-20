@@ -30,7 +30,7 @@
 #include <sys/types.h>
 
 #include "pgdbf.h"
-#define STANDARDOPTS "cCdDeEhm:i:fnNpPqQrRtTuU"
+#define STANDARDOPTS "cCdDeEhm:i:fg:nNpPqQrRtTuU"
 
 int main(int argc, char **argv) {
     /* Describing the DBF file */
