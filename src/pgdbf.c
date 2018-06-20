@@ -117,6 +117,7 @@ int main(int argc, char **argv) {
     /* Describing the PostgreSQL table */
     char *tablename;
     char *baretablename;
+    char *optcustomtable;
     char (*fieldnames)[MAXCOLUMNNAMESIZE];
     int isuniquename;
     char basename[MAXCOLUMNNAMESIZE];
@@ -177,6 +178,8 @@ int main(int argc, char **argv) {
             break;
         case 'f':
             optprintfields = 1;
+        case 'g':
+            optcustomtable = optarg;
         case 'm':
             memofilename = optarg;
             break;
@@ -256,6 +259,7 @@ int main(int argc, char **argv) {
                "  -h  print this message and exit\n"
                "  -i  ignore fields\n"
                "  -f  print fieldnames in \\COPY command\n"
+               "  -g  the custom table name to create\n"
                "  -m  the name of the associated memo file (if necessary)\n"
                "  -n  use type 'NUMERIC' for NUMERIC fields (default)\n"
                "  -N  use type 'TEXT' for NUMERIC fields\n"
@@ -313,7 +317,11 @@ int main(int argc, char **argv) {
 
     /* Calculate the table's name based on the DBF filename */
     dbffilename = argv[optind];
-    tablename = malloc(strlen(dbffilename) + 1);
+    if(optcustomtable){
+        tablename = malloc(strlen(optcustomtable) + 1);
+    } else {
+        tablename = malloc(strlen(dbffilename) + 1);
+    }
     if(tablename == NULL) {
         exitwitherror("Unable to allocate the tablename buffer", 1);
     }
@@ -322,7 +330,11 @@ int main(int argc, char **argv) {
      * is used for other things, like creating the names of indexes. Despite
      * its name, baretablename may be surrounded by quote marks if the "-q"
      * option for optusequotedtablename is given. */
-    baretablename = malloc(strlen(dbffilename) + 1 + optusequotedtablename * 2);
+    if(optcustomtable){
+        baretablename = malloc(strlen(optcustomtable) + 1 + optusequotedtablename * 2);
+    } else {
+        baretablename = malloc(strlen(dbffilename) + 1 + optusequotedtablename * 2);
+    }
     if(baretablename == NULL) {
         exitwitherror("Unable to allocate the bare tablename buffer", 1);
     }
